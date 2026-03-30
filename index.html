@@ -527,7 +527,29 @@ function showCard(idx) {
   loadCard(idx);
 }
 
-function nextCard() {
+function flyOut(direction) {
+  if (animating) return;
+  animating = true;
+
+  const card = document.getElementById('card');
+  const scene = document.getElementById('scene');
+
+  // Clone the current card and animate the clone out
+  const clone = card.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.style.position = 'absolute';
+  clone.style.top = '0';
+  clone.style.left = '0';
+  clone.style.width = '100%';
+  clone.style.height = '100%';
+  clone.style.zIndex = '10';
+  scene.appendChild(clone);
+  // Trigger fly-out on clone
+  void clone.offsetWidth;
+  clone.classList.add(direction === 'right' ? 'fly-out-right' : 'fly-out-left');
+  setTimeout(() => clone.remove(), 560);
+
+  // Immediately load next card on the real element (visible behind clone)
   current++;
   if (current >= deck.length) {
     deck = shuffle(pool);
@@ -543,9 +565,7 @@ function flipCard() {
     card.classList.add('is-flipped');
     flipped = true;
   } else {
-    animating = true;
-    card.classList.add('fly-out-right');
-    setTimeout(nextCard, 520);
+    flyOut('right');
   }
 }
 
@@ -568,10 +588,7 @@ document.getElementById('card').addEventListener('touchend', e => {
   e.preventDefault();
   const dx = e.changedTouches[0].clientX - touchStartX;
   if (Math.abs(dx) > 40 && flipped && !animating) {
-    animating = true;
-    const card = document.getElementById('card');
-    card.classList.add(dx > 0 ? 'fly-out-left' : 'fly-out-right');
-    setTimeout(nextCard, 520);
+    flyOut(dx > 0 ? 'left' : 'right');
   } else {
     flipCard();
   }
