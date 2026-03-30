@@ -24,7 +24,9 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    min-height: 100vh;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
     background-color: #f5f0eb;
     background-image:
       radial-gradient(ellipse at 0% 0%, rgba(193,18,31,0.08) 0%, transparent 55%),
@@ -35,7 +37,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px 16px;
+    padding: 12px 16px;
   }
 
   /* Decorative vertical Japanese text */
@@ -58,14 +60,14 @@
   /* Brush-stroke header */
   header {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 16px;
     position: relative;
   }
 
   .title-jp {
     font-family: 'Noto Serif JP', serif;
     font-weight: 700;
-    font-size: clamp(28px, 8vw, 44px);
+    font-size: clamp(22px, 6vw, 34px);
     color: var(--ink);
     letter-spacing: 0.25em;
     line-height: 1;
@@ -87,7 +89,7 @@
     width: 60px;
     height: 2px;
     background: var(--vermillion);
-    margin: 10px auto 0;
+    margin: 6px auto 0;
     opacity: 0.7;
   }
 
@@ -95,7 +97,7 @@
   .level-selector {
     display: flex;
     gap: 10px;
-    margin-bottom: 28px;
+    margin-bottom: 16px;
   }
 
   .level-btn {
@@ -120,8 +122,8 @@
 
   /* CARD SCENE */
   .scene {
-    width: clamp(280px, 88vw, 380px);
-    height: clamp(440px, 72vw, 540px);
+    width: clamp(260px, 80vw, 360px);
+    height: clamp(340px, 55vh, 480px);
     position: relative;
   }
 
@@ -370,14 +372,14 @@
   /* NEXT CARD PEEK */
   .card-stack {
     position: relative;
-    width: clamp(280px, 88vw, 380px);
+    width: clamp(260px, 80vw, 360px);
     isolation: isolate;
   }
 
   .card-behind {
     position: absolute;
     width: 95%;
-    height: clamp(440px, 72vw, 540px);
+    height: clamp(340px, 55vh, 480px);
     background: #e8e2dc;
     border-radius: 18px;
     top: 8px;
@@ -392,7 +394,7 @@
   .card-behind-2 {
     position: absolute;
     width: 90%;
-    height: clamp(440px, 72vw, 540px);
+    height: clamp(340px, 55vh, 480px);
     background: #ddd7d0;
     border-radius: 18px;
     top: 15px;
