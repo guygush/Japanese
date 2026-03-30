@@ -574,10 +574,10 @@ let activeN4 = false;
 
 function toggleLevel(lvl) {
   if (lvl === 'N5') {
-    if (activeN5 && !activeN4) { activeN4 = true; } // prevent deselecting last
+    if (activeN5 && !activeN4) { activeN5 = false; activeN4 = true; }
     else activeN5 = !activeN5;
   } else {
-    if (activeN4 && !activeN5) { activeN5 = true; } // prevent deselecting last
+    if (activeN4 && !activeN5) { activeN4 = false; activeN5 = true; }
     else activeN4 = !activeN4;
   }
   document.getElementById('btnN5').classList.toggle('active', activeN5);
