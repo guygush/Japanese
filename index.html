@@ -89,35 +89,31 @@
     opacity: 0.6;
   }
 
-  /* Progress */
-  .progress-wrap {
+  /* Level selector */
+  .level-selector {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 28px;
   }
 
-  .progress-bar {
-    width: clamp(160px, 50vw, 260px);
-    height: 2px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold), var(--vermillion));
-    border-radius: 2px;
-    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-  }
-
-  .progress-label {
+  .level-btn {
     font-family: 'Cormorant Garamond', serif;
     font-size: 13px;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 0.1em;
-    min-width: 44px;
+    letter-spacing: 0.25em;
+    padding: 7px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.45);
+    background: none;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-transform: uppercase;
+  }
+
+  .level-btn.active {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(184,134,11,0.12);
   }
 
   /* CARD SCENE */
@@ -444,48 +440,6 @@
     background: rgba(192,57,43,0.1);
   }
 
-  /* DONE SCREEN */
-  .done-screen {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    animation: fadeIn 0.8s ease forwards;
-  }
-
-  .done-screen.visible { display: flex; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .done-kanji {
-    font-family: 'Noto Serif JP', serif;
-    font-size: 80px;
-    color: var(--gold-light);
-    line-height: 1;
-    margin-bottom: 8px;
-    filter: drop-shadow(0 0 20px rgba(184,134,11,0.3));
-  }
-
-  .done-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 28px;
-    color: var(--paper);
-    letter-spacing: 0.15em;
-    margin-bottom: 6px;
-  }
-
-  .done-sub {
-    font-size: 13px;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-bottom: 32px;
-  }
 
   /* CARD ENTER ANIMATION */
   @keyframes cardEnter {
@@ -507,9 +461,9 @@
   <span class="title-rule"></span>
 </header>
 
-<div class="progress-wrap">
-  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-  <div class="progress-label" id="progressLabel">0 / 0</div>
+<div class="level-selector">
+  <button class="level-btn active" id="btnN5" onclick="setLevel('N5')">N5</button>
+  <button class="level-btn" id="btnN4" onclick="setLevel('N5+N4')">N5 + N4</button>
 </div>
 
 <!-- Card stack -->
@@ -537,104 +491,12 @@
 </div>
 
 <div class="controls">
-  <button class="btn" id="shuffleBtn">shuffle</button>
-  <button class="btn btn-primary" id="restartBtn">restart</button>
+  <button class="btn" id="shuffleBtn">reshuffle</button>
 </div>
 
-<div class="done-screen" id="doneScreen">
-  <div class="done-kanji">完</div>
-  <div class="done-title">Complete!</div>
-  <div class="done-sub">deck finished · よくできました</div>
-  <button class="btn btn-primary" id="playAgainBtn" style="font-size:14px;padding:10px 28px;">Play Again</button>
-</div>
-
+<script src="words.js"></script>
 <script>
-const CARDS = [
-  // Greetings & Basics
-  { en: "Hello",        kana: "こんにちは",       kanji: "",        romaji: "konnichiwa",    cat: "greetings" },
-  { en: "Good morning", kana: "おはようございます", kanji: "",        romaji: "ohayou gozaimasu", cat: "greetings" },
-  { en: "Good evening", kana: "こんばんは",        kanji: "",        romaji: "konbanwa",      cat: "greetings" },
-  { en: "Thank you",    kana: "ありがとうございます", kanji: "",       romaji: "arigatou gozaimasu", cat: "greetings" },
-  { en: "Sorry",        kana: "すみません",        kanji: "",        romaji: "sumimasen",     cat: "greetings" },
-  { en: "Goodbye",      kana: "さようなら",        kanji: "",        romaji: "sayounara",     cat: "greetings" },
-  { en: "Please",       kana: "おねがいします",    kanji: "お願いします", romaji: "onegaishimasu", cat: "greetings" },
-  { en: "Yes",          kana: "はい",              kanji: "",        romaji: "hai",           cat: "basics" },
-  { en: "No",           kana: "いいえ",            kanji: "",        romaji: "iie",           cat: "basics" },
-  // Nature
-  { en: "Water",        kana: "みず",              kanji: "水",      romaji: "mizu",          cat: "nature" },
-  { en: "Fire",         kana: "ひ",                kanji: "火",      romaji: "hi",            cat: "nature" },
-  { en: "Sky",          kana: "そら",              kanji: "空",      romaji: "sora",          cat: "nature" },
-  { en: "Mountain",     kana: "やま",              kanji: "山",      romaji: "yama",          cat: "nature" },
-  { en: "River",        kana: "かわ",              kanji: "川",      romaji: "kawa",          cat: "nature" },
-  { en: "Sea / Ocean",  kana: "うみ",              kanji: "海",      romaji: "umi",           cat: "nature" },
-  { en: "Moon",         kana: "つき",              kanji: "月",      romaji: "tsuki",         cat: "nature" },
-  { en: "Sun",          kana: "たいよう",          kanji: "太陽",    romaji: "taiyou",        cat: "nature" },
-  { en: "Flower",       kana: "はな",              kanji: "花",      romaji: "hana",          cat: "nature" },
-  { en: "Tree",         kana: "き",                kanji: "木",      romaji: "ki",            cat: "nature" },
-  { en: "Wind",         kana: "かぜ",              kanji: "風",      romaji: "kaze",          cat: "nature" },
-  { en: "Rain",         kana: "あめ",              kanji: "雨",      romaji: "ame",           cat: "nature" },
-  { en: "Snow",         kana: "ゆき",              kanji: "雪",      romaji: "yuki",          cat: "nature" },
-  { en: "Cloud",        kana: "くも",              kanji: "雲",      romaji: "kumo",          cat: "nature" },
-  { en: "Earth / Soil", kana: "つち",              kanji: "土",      romaji: "tsuchi",        cat: "nature" },
-  { en: "Forest",       kana: "もり",              kanji: "森",      romaji: "mori",          cat: "nature" },
-  // People & Body
-  { en: "Person",       kana: "ひと",              kanji: "人",      romaji: "hito",          cat: "people" },
-  { en: "Man",          kana: "おとこ",            kanji: "男",      romaji: "otoko",         cat: "people" },
-  { en: "Woman",        kana: "おんな",            kanji: "女",      romaji: "onna",          cat: "people" },
-  { en: "Child",        kana: "こども",            kanji: "子供",    romaji: "kodomo",        cat: "people" },
-  { en: "Friend",       kana: "ともだち",          kanji: "友達",    romaji: "tomodachi",     cat: "people" },
-  { en: "Teacher",      kana: "せんせい",          kanji: "先生",    romaji: "sensei",        cat: "people" },
-  { en: "Eye",          kana: "め",                kanji: "目",      romaji: "me",            cat: "body" },
-  { en: "Hand",         kana: "て",                kanji: "手",      romaji: "te",            cat: "body" },
-  { en: "Heart",        kana: "こころ",            kanji: "心",      romaji: "kokoro",        cat: "body" },
-  // Time
-  { en: "Today",        kana: "きょう",            kanji: "今日",    romaji: "kyou",          cat: "time" },
-  { en: "Tomorrow",     kana: "あした",            kanji: "明日",    romaji: "ashita",        cat: "time" },
-  { en: "Yesterday",    kana: "きのう",            kanji: "昨日",    romaji: "kinou",         cat: "time" },
-  { en: "Now",          kana: "いま",              kanji: "今",      romaji: "ima",           cat: "time" },
-  { en: "Time",         kana: "じかん",            kanji: "時間",    romaji: "jikan",         cat: "time" },
-  { en: "Morning",      kana: "あさ",              kanji: "朝",      romaji: "asa",           cat: "time" },
-  { en: "Night",        kana: "よる",              kanji: "夜",      romaji: "yoru",          cat: "time" },
-  // Food & Drink
-  { en: "Food",         kana: "たべもの",          kanji: "食べ物",  romaji: "tabemono",      cat: "food" },
-  { en: "Rice",         kana: "ごはん",            kanji: "ご飯",    romaji: "gohan",         cat: "food" },
-  { en: "Tea",          kana: "おちゃ",            kanji: "お茶",    romaji: "ocha",          cat: "food" },
-  { en: "Fish",         kana: "さかな",            kanji: "魚",      romaji: "sakana",        cat: "food" },
-  { en: "Bread",        kana: "パン",              kanji: "",        romaji: "pan",           cat: "food" },
-  { en: "Sake / Alcohol", kana: "さけ",            kanji: "酒",      romaji: "sake",          cat: "food" },
-  // Emotions & Abstract
-  { en: "Love",         kana: "あい",              kanji: "愛",      romaji: "ai",            cat: "emotion" },
-  { en: "Dream",        kana: "ゆめ",              kanji: "夢",      romaji: "yume",          cat: "emotion" },
-  { en: "Peace",        kana: "へいわ",            kanji: "平和",    romaji: "heiwa",         cat: "emotion" },
-  { en: "Happiness",    kana: "しあわせ",          kanji: "幸せ",    romaji: "shiawase",      cat: "emotion" },
-  { en: "Sadness",      kana: "かなしみ",          kanji: "悲しみ",  romaji: "kanashimi",     cat: "emotion" },
-  { en: "Courage",      kana: "ゆうき",            kanji: "勇気",    romaji: "yuuki",         cat: "emotion" },
-  { en: "Beautiful",    kana: "うつくしい",        kanji: "美しい",  romaji: "utsukushii",    cat: "adjective" },
-  { en: "Strong",       kana: "つよい",            kanji: "強い",    romaji: "tsuyoi",        cat: "adjective" },
-  { en: "Important",    kana: "たいせつ",          kanji: "大切",    romaji: "taisetsu",      cat: "adjective" },
-  // Places
-  { en: "Japan",        kana: "にほん",            kanji: "日本",    romaji: "nihon",         cat: "place" },
-  { en: "School",       kana: "がっこう",          kanji: "学校",    romaji: "gakkou",        cat: "place" },
-  { en: "Home / House", kana: "いえ",              kanji: "家",      romaji: "ie",            cat: "place" },
-  { en: "Town / City",  kana: "まち",              kanji: "町",      romaji: "machi",         cat: "place" },
-  { en: "Road / Way",   kana: "みち",              kanji: "道",      romaji: "michi",         cat: "place" },
-  // Verbs
-  { en: "To eat",       kana: "たべる",            kanji: "食べる",  romaji: "taberu",        cat: "verb" },
-  { en: "To drink",     kana: "のむ",              kanji: "飲む",    romaji: "nomu",          cat: "verb" },
-  { en: "To see / watch", kana: "みる",            kanji: "見る",    romaji: "miru",          cat: "verb" },
-  { en: "To hear",      kana: "きく",              kanji: "聞く",    romaji: "kiku",          cat: "verb" },
-  { en: "To speak",     kana: "はなす",            kanji: "話す",    romaji: "hanasu",        cat: "verb" },
-  { en: "To go",        kana: "いく",              kanji: "行く",    romaji: "iku",           cat: "verb" },
-  { en: "To come",      kana: "くる",              kanji: "来る",    romaji: "kuru",          cat: "verb" },
-  { en: "To know",      kana: "しる",              kanji: "知る",    romaji: "shiru",         cat: "verb" },
-  { en: "To think",     kana: "おもう",            kanji: "思う",    romaji: "omou",          cat: "verb" },
-  { en: "To write",     kana: "かく",              kanji: "書く",    romaji: "kaku",          cat: "verb" },
-  { en: "To read",      kana: "よむ",              kanji: "読む",    romaji: "yomu",          cat: "verb" },
-  { en: "To study",     kana: "べんきょうする",    kanji: "勉強する", romaji: "benkyou suru", cat: "verb" },
-  { en: "To sleep",     kana: "ねる",              kanji: "寝る",    romaji: "neru",          cat: "verb" },
-  { en: "To live",      kana: "いきる",            kanji: "生きる",  romaji: "ikiru",         cat: "verb" },
-];
-
+let pool = [];
 let deck = [];
 let current = 0;
 let flipped = false;
@@ -649,33 +511,34 @@ function shuffle(arr) {
   return a;
 }
 
-function updateProgress() {
-  const pct = deck.length ? (current / deck.length) * 100 : 0;
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent = current + ' / ' + deck.length;
-}
-
 function loadCard(idx) {
   const d = deck[idx];
   document.getElementById('englishWord').textContent = d.en;
   document.getElementById('japaneseReading').textContent = d.kana;
   document.getElementById('japaneseKanji').textContent = d.kanji || '';
-  document.getElementById('romaji').textContent = d.romaji;
-  document.getElementById('cardCategory').textContent = d.cat;
-  updateProgress();
+  document.getElementById('romaji').textContent = d.romaji || '';
+  document.getElementById('cardCategory').textContent = '';
 }
 
 function showCard(idx) {
   const card = document.getElementById('card');
-  // Disable transitions so faces snap instantly to front-side position
   card.classList.add('no-transition');
   card.classList.remove('is-flipped', 'fly-out-right', 'fly-out-left', 'card-enter');
-  void card.offsetWidth; // reflow — forces the no-transition snap
+  void card.offsetWidth;
   card.classList.remove('no-transition');
   card.classList.add('card-enter');
   flipped = false;
   animating = false;
   loadCard(idx);
+}
+
+function nextCard() {
+  current++;
+  if (current >= deck.length) {
+    deck = shuffle(pool);
+    current = 0;
+  }
+  showCard(current);
 }
 
 function flipCard() {
@@ -685,68 +548,47 @@ function flipCard() {
     card.classList.add('is-flipped');
     flipped = true;
   } else {
-    // Fly out
     animating = true;
     card.classList.add('fly-out-right');
-    setTimeout(() => {
-      current++;
-      if (current >= deck.length) {
-        showDone();
-      } else {
-        showCard(current);
-      }
-    }, 520);
+    setTimeout(nextCard, 520);
   }
 }
 
-function showDone() {
-  document.getElementById('cardStack').style.display = 'none';
-  document.getElementById('controls').style.display = 'none';
-  document.getElementById('progressLabel').textContent = deck.length + ' / ' + deck.length;
-  document.getElementById('progressFill').style.width = '100%';
-  const done = document.getElementById('doneScreen');
-  done.classList.add('visible');
-}
-
-function startGame(shouldShuffle) {
-  deck = shouldShuffle ? shuffle(CARDS) : [...CARDS];
+function setLevel(lvl) {
+  document.getElementById('btnN5').classList.toggle('active', lvl === 'N5');
+  document.getElementById('btnN4').classList.toggle('active', lvl === 'N5+N4');
+  pool = lvl === 'N5' ? [...N5] : [...N5, ...N4];
+  deck = shuffle(pool);
   current = 0;
-  document.getElementById('cardStack').style.display = 'block';
-  document.querySelector('.controls').style.display = 'flex';
-  document.getElementById('doneScreen').classList.remove('visible');
   showCard(0);
 }
 
-// Events
 document.getElementById('card').addEventListener('click', flipCard);
-document.getElementById('shuffleBtn').addEventListener('click', () => startGame(true));
-document.getElementById('restartBtn').addEventListener('click', () => startGame(false));
-document.getElementById('playAgainBtn').addEventListener('click', () => startGame(true));
+document.getElementById('shuffleBtn').addEventListener('click', () => {
+  deck = shuffle(pool);
+  current = 0;
+  showCard(0);
+});
 
-// Swipe support
 let touchStartX = 0;
 document.getElementById('card').addEventListener('touchstart', e => {
   touchStartX = e.touches[0].clientX;
 }, { passive: true });
 document.getElementById('card').addEventListener('touchend', e => {
-  e.preventDefault(); // stop the synthetic click from firing after touch
+  e.preventDefault();
   const dx = e.changedTouches[0].clientX - touchStartX;
   if (Math.abs(dx) > 40 && flipped && !animating) {
     animating = true;
     const card = document.getElementById('card');
     card.classList.add(dx > 0 ? 'fly-out-left' : 'fly-out-right');
-    setTimeout(() => {
-      current++;
-      if (current >= deck.length) showDone();
-      else showCard(current);
-    }, 520);
+    setTimeout(nextCard, 520);
   } else {
     flipCard();
   }
 });
 
-// Init
-startGame(true);
+// Init with N5
+setLevel('N5');
 </script>
 </body>
 </html>
