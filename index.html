@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
+<title>和語 — Japanese Flash Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1410;
+    --paper: #f5f0e8;
+    --paper-dark: #ede6d6;
+    --vermillion: #c0392b;
+    --gold: #b8860b;
+    --gold-light: #d4a843;
+    --mist: #8b9eb0;
+    --shadow: rgba(26,20,16,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background-color: #1a1410;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(139,94,60,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(139,110,90,0.10) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    font-family: 'Cormorant Garamond', serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  /* Decorative vertical Japanese text */
+  .deco-text {
+    position: fixed;
+    top: 0;
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.07);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    pointer-events: none;
+    line-height: 2;
+  }
+  .deco-left  { left: 12px;  top: 40px; }
+  .deco-right { right: 12px; bottom: 40px; }
+
+  /* Brush-stroke header */
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .title-jp {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 700;
+    font-size: clamp(28px, 8vw, 44px);
+    color: var(--paper);
+    letter-spacing: 0.25em;
+    line-height: 1;
+  }
+
+  .title-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(11px, 3vw, 14px);
+    color: var(--gold-light);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .title-rule {
+    display: block;
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    margin: 10px auto 0;
+    opacity: 0.6;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .progress-bar {
+    width: clamp(160px, 50vw, 260px);
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--vermillion));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .progress-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.1em;
+    min-width: 44px;
+  }
+
+  /* CARD SCENE */
+  .scene {
+    width: clamp(280px, 88vw, 380px);
+    height: clamp(360px, 60vw, 460px);
+    position: relative;
+  }
+
+  .card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+    border-radius: 18px;
+  }
+
+  .card.fly-out-right {
+    animation: flyOutRight 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  .card.fly-out-left {
+    animation: flyOutLeft 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  @keyframes flyOutRight {
+    0%   { transform: translateX(0) translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateX(120vw) translateY(-20px) rotate(12deg); opacity: 0; }
+  }
+  @keyframes flyOutLeft {
+    0%   { transform: translateX(0) translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateX(-120vw) translateY(-20px) rotate(-12deg); opacity: 0; }
+  }
+
+  .card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    overflow: hidden;
+    /* transform rotates, opacity snaps at the halfway point */
+    transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity   0s   linear 0.325s;
+  }
+
+  .card.no-transition .card-face {
+    transition: none !important;
+  }
+
+  /* FRONT */
+  .card-front {
+    transform: perspective(1200px) rotateY(0deg);
+    opacity: 1;
+    background: var(--paper);
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.3),
+      0 20px 60px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+
+  .card-front::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 28px,
+        rgba(139,120,90,0.06) 28px,
+        rgba(139,120,90,0.06) 29px
+      );
+  }
+
+  .card-front::after {
+    content: '';
+    position: absolute;
+    top: 16px; right: 16px; bottom: 16px; left: 16px;
+    border: 1px solid rgba(139,100,60,0.2);
+    border-radius: 12px;
+    pointer-events: none;
+  }
+
+  .corner-stamp {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 9px;
+    font-weight: 300;
+    color: rgba(139,100,60,0.4);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .card-category {
+    position: absolute;
+    bottom: 22px;
+    right: 24px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11px;
+    color: rgba(139,100,60,0.5);
+    letter-spacing: 0.15em;
+  }
+
+  .english-word {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(32px, 9vw, 52px);
+    color: var(--ink);
+    text-align: center;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+    position: relative;
+    z-index: 1;
+  }
+
+  .tap-hint {
+    margin-top: 20px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: rgba(139,100,60,0.5);
+    letter-spacing: 0.2em;
+    animation: pulse 2.5s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  .card.is-flipped .card-front {
+    transform: perspective(1200px) rotateY(-180deg);
+    opacity: 0;
+    transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity   0s   linear 0s; /* hide immediately when flip starts */
+  }
+  .card.is-flipped .card-back {
+    transform: perspective(1200px) rotateY(0deg);
+    opacity: 1;
+  }
+
+  /* BACK */
+  .card-back {
+    background: #1e1812;
+    transform: perspective(1200px) rotateY(180deg);
+    opacity: 0;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.4),
+      0 20px 60px rgba(0,0,0,0.6);
+    border: 1px solid rgba(184,134,11,0.2);
+  }
+
+  .card-back::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: radial-gradient(ellipse at 50% 30%, rgba(184,134,11,0.08) 0%, transparent 70%);
+  }
+
+  .back-corner {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 9px;
+    font-weight: 300;
+    color: rgba(184,134,11,0.4);
+    letter-spacing: 0.3em;
+  }
+
+  .divider-ornament {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    width: 80%;
+  }
+
+  .divider-ornament::before,
+  .divider-ornament::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(184,134,11,0.4), transparent);
+  }
+
+  .divider-ornament span {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 10px;
+    color: rgba(184,134,11,0.5);
+  }
+
+  .japanese-reading {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 300;
+    font-size: clamp(30px, 9vw, 46px);
+    color: var(--paper);
+    letter-spacing: 0.18em;
+    text-align: center;
+    line-height: 1.3;
+    position: relative;
+    z-index: 1;
+  }
+
+  .japanese-kanji {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 400;
+    font-size: clamp(36px, 11vw, 58px);
+    color: var(--gold-light);
+    letter-spacing: 0.12em;
+    text-align: center;
+    line-height: 1.2;
+    position: relative;
+    z-index: 1;
+  }
+
+  .romaji {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: rgba(212,168,67,0.5);
+    letter-spacing: 0.25em;
+    margin-top: 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .swipe-hint {
+    position: absolute;
+    bottom: 22px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11px;
+    color: rgba(184,134,11,0.4);
+    letter-spacing: 0.2em;
+    z-index: 1;
+  }
+
+  /* NEXT CARD PEEK */
+  .card-stack {
+    position: relative;
+    width: clamp(280px, 88vw, 380px);
+    isolation: isolate;
+  }
+
+  .card-behind {
+    position: absolute;
+    width: 95%;
+    height: clamp(360px, 60vw, 460px);
+    background: var(--paper-dark);
+    border-radius: 18px;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-1.5deg);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    opacity: 0.5;
+    z-index: 0;
+    transition: opacity 0.3s;
+  }
+
+  .card-behind-2 {
+    position: absolute;
+    width: 90%;
+    height: clamp(360px, 60vw, 460px);
+    background: var(--paper-dark);
+    border-radius: 18px;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%) rotate(1deg);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    opacity: 0.3;
+    z-index: -1;
+  }
+
+  .scene { z-index: 1; }
+
+  /* CONTROLS */
+  .controls {
+    margin-top: 28px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    padding: 8px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-transform: uppercase;
+  }
+
+  .btn:hover {
+    border-color: rgba(184,134,11,0.5);
+    color: var(--gold-light);
+    background: rgba(184,134,11,0.07);
+  }
+
+  .btn-primary {
+    border-color: rgba(192,57,43,0.5);
+    color: rgba(192,57,43,0.8);
+  }
+  .btn-primary:hover {
+    border-color: var(--vermillion);
+    color: #e74c3c;
+    background: rgba(192,57,43,0.1);
+  }
+
+  /* DONE SCREEN */
+  .done-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    animation: fadeIn 0.8s ease forwards;
+  }
+
+  .done-screen.visible { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .done-kanji {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 80px;
+    color: var(--gold-light);
+    line-height: 1;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 20px rgba(184,134,11,0.3));
+  }
+
+  .done-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--paper);
+    letter-spacing: 0.15em;
+    margin-bottom: 6px;
+  }
+
+  .done-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  /* CARD ENTER ANIMATION */
+  @keyframes cardEnter {
+    from { opacity: 0; transform: scale(0.92) translateY(16px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .card-enter { animation: cardEnter 0.45s cubic-bezier(0.34,1.2,0.64,1) forwards; }
+</style>
+</head>
+<body>
+
+<div class="deco-left deco-text">日本語フラッシュカード　学習　練習　語彙</div>
+<div class="deco-right deco-text">毎日練習　上達する　覚える　日本語</div>
+
+<header>
+  <div class="title-jp">和語</div>
+  <div class="title-en">Japanese Flash Cards</div>
+  <span class="title-rule"></span>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="progress-label" id="progressLabel">0 / 0</div>
+</div>
+
+<!-- Card stack -->
+<div class="card-stack" id="cardStack">
+  <div class="card-behind-2"></div>
+  <div class="card-behind"></div>
+  <div class="scene" id="scene">
+    <div class="card card-enter" id="card">
+      <div class="card-face card-front">
+        <span class="corner-stamp">英語 · english</span>
+        <div class="english-word" id="englishWord">Loading…</div>
+        <div class="tap-hint">tap to reveal</div>
+        <span class="card-category" id="cardCategory"></span>
+      </div>
+      <div class="card-face card-back">
+        <span class="back-corner">日本語</span>
+        <div class="japanese-reading" id="japaneseReading"></div>
+        <div class="divider-ornament"><span>◆</span></div>
+        <div class="japanese-kanji" id="japaneseKanji"></div>
+        <div class="romaji" id="romaji"></div>
+        <div class="swipe-hint">tap to continue →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn" id="shuffleBtn">shuffle</button>
+  <button class="btn btn-primary" id="restartBtn">restart</button>
+</div>
+
+<div class="done-screen" id="doneScreen">
+  <div class="done-kanji">完</div>
+  <div class="done-title">Complete!</div>
+  <div class="done-sub">deck finished · よくできました</div>
+  <button class="btn btn-primary" id="playAgainBtn" style="font-size:14px;padding:10px 28px;">Play Again</button>
+</div>
+
+<script>
+const CARDS = [
+  // Greetings & Basics
+  { en: "Hello",        kana: "こんにちは",       kanji: "",        romaji: "konnichiwa",    cat: "greetings" },
+  { en: "Good morning", kana: "おはようございます", kanji: "",        romaji: "ohayou gozaimasu", cat: "greetings" },
+  { en: "Good evening", kana: "こんばんは",        kanji: "",        romaji: "konbanwa",      cat: "greetings" },
+  { en: "Thank you",    kana: "ありがとうございます", kanji: "",       romaji: "arigatou gozaimasu", cat: "greetings" },
+  { en: "Sorry",        kana: "すみません",        kanji: "",        romaji: "sumimasen",     cat: "greetings" },
+  { en: "Goodbye",      kana: "さようなら",        kanji: "",        romaji: "sayounara",     cat: "greetings" },
+  { en: "Please",       kana: "おねがいします",    kanji: "お願いします", romaji: "onegaishimasu", cat: "greetings" },
+  { en: "Yes",          kana: "はい",              kanji: "",        romaji: "hai",           cat: "basics" },
+  { en: "No",           kana: "いいえ",            kanji: "",        romaji: "iie",           cat: "basics" },
+  // Nature
+  { en: "Water",        kana: "みず",              kanji: "水",      romaji: "mizu",          cat: "nature" },
+  { en: "Fire",         kana: "ひ",                kanji: "火",      romaji: "hi",            cat: "nature" },
+  { en: "Sky",          kana: "そら",              kanji: "空",      romaji: "sora",          cat: "nature" },
+  { en: "Mountain",     kana: "やま",              kanji: "山",      romaji: "yama",          cat: "nature" },
+  { en: "River",        kana: "かわ",              kanji: "川",      romaji: "kawa",          cat: "nature" },
+  { en: "Sea / Ocean",  kana: "うみ",              kanji: "海",      romaji: "umi",           cat: "nature" },
+  { en: "Moon",         kana: "つき",              kanji: "月",      romaji: "tsuki",         cat: "nature" },
+  { en: "Sun",          kana: "たいよう",          kanji: "太陽",    romaji: "taiyou",        cat: "nature" },
+  { en: "Flower",       kana: "はな",              kanji: "花",      romaji: "hana",          cat: "nature" },
+  { en: "Tree",         kana: "き",                kanji: "木",      romaji: "ki",            cat: "nature" },
+  { en: "Wind",         kana: "かぜ",              kanji: "風",      romaji: "kaze",          cat: "nature" },
+  { en: "Rain",         kana: "あめ",              kanji: "雨",      romaji: "ame",           cat: "nature" },
+  { en: "Snow",         kana: "ゆき",              kanji: "雪",      romaji: "yuki",          cat: "nature" },
+  { en: "Cloud",        kana: "くも",              kanji: "雲",      romaji: "kumo",          cat: "nature" },
+  { en: "Earth / Soil", kana: "つち",              kanji: "土",      romaji: "tsuchi",        cat: "nature" },
+  { en: "Forest",       kana: "もり",              kanji: "森",      romaji: "mori",          cat: "nature" },
+  // People & Body
+  { en: "Person",       kana: "ひと",              kanji: "人",      romaji: "hito",          cat: "people" },
+  { en: "Man",          kana: "おとこ",            kanji: "男",      romaji: "otoko",         cat: "people" },
+  { en: "Woman",        kana: "おんな",            kanji: "女",      romaji: "onna",          cat: "people" },
+  { en: "Child",        kana: "こども",            kanji: "子供",    romaji: "kodomo",        cat: "people" },
+  { en: "Friend",       kana: "ともだち",          kanji: "友達",    romaji: "tomodachi",     cat: "people" },
+  { en: "Teacher",      kana: "せんせい",          kanji: "先生",    romaji: "sensei",        cat: "people" },
+  { en: "Eye",          kana: "め",                kanji: "目",      romaji: "me",            cat: "body" },
+  { en: "Hand",         kana: "て",                kanji: "手",      romaji: "te",            cat: "body" },
+  { en: "Heart",        kana: "こころ",            kanji: "心",      romaji: "kokoro",        cat: "body" },
+  // Time
+  { en: "Today",        kana: "きょう",            kanji: "今日",    romaji: "kyou",          cat: "time" },
+  { en: "Tomorrow",     kana: "あした",            kanji: "明日",    romaji: "ashita",        cat: "time" },
+  { en: "Yesterday",    kana: "きのう",            kanji: "昨日",    romaji: "kinou",         cat: "time" },
+  { en: "Now",          kana: "いま",              kanji: "今",      romaji: "ima",           cat: "time" },
+  { en: "Time",         kana: "じかん",            kanji: "時間",    romaji: "jikan",         cat: "time" },
+  { en: "Morning",      kana: "あさ",              kanji: "朝",      romaji: "asa",           cat: "time" },
+  { en: "Night",        kana: "よる",              kanji: "夜",      romaji: "yoru",          cat: "time" },
+  // Food & Drink
+  { en: "Food",         kana: "たべもの",          kanji: "食べ物",  romaji: "tabemono",      cat: "food" },
+  { en: "Rice",         kana: "ごはん",            kanji: "ご飯",    romaji: "gohan",         cat: "food" },
+  { en: "Tea",          kana: "おちゃ",            kanji: "お茶",    romaji: "ocha",          cat: "food" },
+  { en: "Fish",         kana: "さかな",            kanji: "魚",      romaji: "sakana",        cat: "food" },
+  { en: "Bread",        kana: "パン",              kanji: "",        romaji: "pan",           cat: "food" },
+  { en: "Sake / Alcohol", kana: "さけ",            kanji: "酒",      romaji: "sake",          cat: "food" },
+  // Emotions & Abstract
+  { en: "Love",         kana: "あい",              kanji: "愛",      romaji: "ai",            cat: "emotion" },
+  { en: "Dream",        kana: "ゆめ",              kanji: "夢",      romaji: "yume",          cat: "emotion" },
+  { en: "Peace",        kana: "へいわ",            kanji: "平和",    romaji: "heiwa",         cat: "emotion" },
+  { en: "Happiness",    kana: "しあわせ",          kanji: "幸せ",    romaji: "shiawase",      cat: "emotion" },
+  { en: "Sadness",      kana: "かなしみ",          kanji: "悲しみ",  romaji: "kanashimi",     cat: "emotion" },
+  { en: "Courage",      kana: "ゆうき",            kanji: "勇気",    romaji: "yuuki",         cat: "emotion" },
+  { en: "Beautiful",    kana: "うつくしい",        kanji: "美しい",  romaji: "utsukushii",    cat: "adjective" },
+  { en: "Strong",       kana: "つよい",            kanji: "強い",    romaji: "tsuyoi",        cat: "adjective" },
+  { en: "Important",    kana: "たいせつ",          kanji: "大切",    romaji: "taisetsu",      cat: "adjective" },
+  // Places
+  { en: "Japan",        kana: "にほん",            kanji: "日本",    romaji: "nihon",         cat: "place" },
+  { en: "School",       kana: "がっこう",          kanji: "学校",    romaji: "gakkou",        cat: "place" },
+  { en: "Home / House", kana: "いえ",              kanji: "家",      romaji: "ie",            cat: "place" },
+  { en: "Town / City",  kana: "まち",              kanji: "町",      romaji: "machi",         cat: "place" },
+  { en: "Road / Way",   kana: "みち",              kanji: "道",      romaji: "michi",         cat: "place" },
+  // Verbs
+  { en: "To eat",       kana: "たべる",            kanji: "食べる",  romaji: "taberu",        cat: "verb" },
+  { en: "To drink",     kana: "のむ",              kanji: "飲む",    romaji: "nomu",          cat: "verb" },
+  { en: "To see / watch", kana: "みる",            kanji: "見る",    romaji: "miru",          cat: "verb" },
+  { en: "To hear",      kana: "きく",              kanji: "聞く",    romaji: "kiku",          cat: "verb" },
+  { en: "To speak",     kana: "はなす",            kanji: "話す",    romaji: "hanasu",        cat: "verb" },
+  { en: "To go",        kana: "いく",              kanji: "行く",    romaji: "iku",           cat: "verb" },
+  { en: "To come",      kana: "くる",              kanji: "来る",    romaji: "kuru",          cat: "verb" },
+  { en: "To know",      kana: "しる",              kanji: "知る",    romaji: "shiru",         cat: "verb" },
+  { en: "To think",     kana: "おもう",            kanji: "思う",    romaji: "omou",          cat: "verb" },
+  { en: "To write",     kana: "かく",              kanji: "書く",    romaji: "kaku",          cat: "verb" },
+  { en: "To read",      kana: "よむ",              kanji: "読む",    romaji: "yomu",          cat: "verb" },
+  { en: "To study",     kana: "べんきょうする",    kanji: "勉強する", romaji: "benkyou suru", cat: "verb" },
+  { en: "To sleep",     kana: "ねる",              kanji: "寝る",    romaji: "neru",          cat: "verb" },
+  { en: "To live",      kana: "いきる",            kanji: "生きる",  romaji: "ikiru",         cat: "verb" },
+];
+
+let deck = [];
+let current = 0;
+let flipped = false;
+let animating = false;
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function updateProgress() {
+  const pct = deck.length ? (current / deck.length) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = current + ' / ' + deck.length;
+}
+
+function loadCard(idx) {
+  const d = deck[idx];
+  document.getElementById('englishWord').textContent = d.en;
+  document.getElementById('japaneseReading').textContent = d.kana;
+  document.getElementById('japaneseKanji').textContent = d.kanji || '';
+  document.getElementById('romaji').textContent = d.romaji;
+  document.getElementById('cardCategory').textContent = d.cat;
+  updateProgress();
+}
+
+function showCard(idx) {
+  const card = document.getElementById('card');
+  // Disable transitions so faces snap instantly to front-side position
+  card.classList.add('no-transition');
+  card.classList.remove('is-flipped', 'fly-out-right', 'fly-out-left', 'card-enter');
+  void card.offsetWidth; // reflow — forces the no-transition snap
+  card.classList.remove('no-transition');
+  card.classList.add('card-enter');
+  flipped = false;
+  animating = false;
+  loadCard(idx);
+}
+
+function flipCard() {
+  if (animating) return;
+  const card = document.getElementById('card');
+  if (!flipped) {
+    card.classList.add('is-flipped');
+    flipped = true;
+  } else {
+    // Fly out
+    animating = true;
+    card.classList.add('fly-out-right');
+    setTimeout(() => {
+      current++;
+      if (current >= deck.length) {
+        showDone();
+      } else {
+        showCard(current);
+      }
+    }, 520);
+  }
+}
+
+function showDone() {
+  document.getElementById('cardStack').style.display = 'none';
+  document.getElementById('controls').style.display = 'none';
+  document.getElementById('progressLabel').textContent = deck.length + ' / ' + deck.length;
+  document.getElementById('progressFill').style.width = '100%';
+  const done = document.getElementById('doneScreen');
+  done.classList.add('visible');
+}
+
+function startGame(shouldShuffle) {
+  deck = shouldShuffle ? shuffle(CARDS) : [...CARDS];
+  current = 0;
+  document.getElementById('cardStack').style.display = 'block';
+  document.querySelector('.controls').style.display = 'flex';
+  document.getElementById('doneScreen').classList.remove('visible');
+  showCard(0);
+}
+
+// Events
+document.getElementById('card').addEventListener('click', flipCard);
+document.getElementById('shuffleBtn').addEventListener('click', () => startGame(true));
+document.getElementById('restartBtn').addEventListener('click', () => startGame(false));
+document.getElementById('playAgainBtn').addEventListener('click', () => startGame(true));
+
+// Swipe support
+let touchStartX = 0;
+document.getElementById('card').addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+}, { passive: true });
+document.getElementById('card').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 40 && flipped && !animating) {
+    animating = true;
+    const card = document.getElementById('card');
+    card.classList.add(dx > 0 ? 'fly-out-left' : 'fly-out-right');
+    setTimeout(() => {
+      current++;
+      if (current >= deck.length) showDone();
+      else showCard(current);
+    }, 520);
+  } else {
+    flipCard();
+  }
+}, { passive: true });
+
+// Init
+startGame(true);
+</script>
+</body>
+</html>
