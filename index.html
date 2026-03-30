@@ -142,12 +142,12 @@
   }
 
   @keyframes flyOutRight {
-    0%   { transform: translateX(0) translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateX(120vw) translateY(-20px) rotate(12deg); opacity: 0; }
+    0%   { transform: translateX(0) translateY(0) rotate(0deg); }
+    100% { transform: translateX(120vw) translateY(-20px) rotate(12deg); }
   }
   @keyframes flyOutLeft {
-    0%   { transform: translateX(0) translateY(0) rotate(0deg); opacity: 1; }
-    100% { transform: translateX(-120vw) translateY(-20px) rotate(-12deg); opacity: 0; }
+    0%   { transform: translateX(0) translateY(0) rotate(0deg); }
+    100% { transform: translateX(-120vw) translateY(-20px) rotate(-12deg); }
   }
 
   .card-face {
@@ -460,8 +460,8 @@
 </header>
 
 <div class="level-selector">
-  <button class="level-btn active" id="btnN5" onclick="setLevel('N5')">N5</button>
-  <button class="level-btn" id="btnN4" onclick="setLevel('N5+N4')">N5 + N4</button>
+  <button class="level-btn active" id="btnN5" onclick="toggleLevel('N5')">N5</button>
+  <button class="level-btn" id="btnN4" onclick="toggleLevel('N4')">N4</button>
 </div>
 
 <!-- Card stack -->
@@ -569,10 +569,20 @@ function flipCard() {
   }
 }
 
-function setLevel(lvl) {
-  document.getElementById('btnN5').classList.toggle('active', lvl === 'N5');
-  document.getElementById('btnN4').classList.toggle('active', lvl === 'N5+N4');
-  pool = lvl === 'N5' ? [...N5] : [...N5, ...N4];
+let activeN5 = true;
+let activeN4 = false;
+
+function toggleLevel(lvl) {
+  if (lvl === 'N5') {
+    if (activeN5 && !activeN4) { activeN4 = true; } // prevent deselecting last
+    else activeN5 = !activeN5;
+  } else {
+    if (activeN4 && !activeN5) { activeN5 = true; } // prevent deselecting last
+    else activeN4 = !activeN4;
+  }
+  document.getElementById('btnN5').classList.toggle('active', activeN5);
+  document.getElementById('btnN4').classList.toggle('active', activeN4);
+  pool = [...(activeN5 ? N5 : []), ...(activeN4 ? N4 : [])];
   deck = shuffle(pool);
   current = 0;
   showCard(0);
@@ -595,7 +605,10 @@ document.getElementById('card').addEventListener('touchend', e => {
 });
 
 // Init with N5
-setLevel('N5');
+pool = [...N5];
+deck = shuffle(pool);
+current = 0;
+showCard(0);
 </script>
 </body>
 </html>
